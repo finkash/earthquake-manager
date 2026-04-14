@@ -1,0 +1,35 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	min-height: 100%;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background: radial-gradient(circle at top, #253252 0%, #0f172a 45%, #020617 100%);
+	color: #e2e8f0;
+}
+
+.hello-shell {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1.5rem;
+}
+
+.hello-button {
+	appearance: none;
+	border: none;
+	border-radius: 999px;
+	padding: 0.95rem 2rem;
+	font-size: 1.1rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	background: linear-gradient(135deg, #3b82f6, #06b6d4);
+	color: #ffffff;
+	box-shadow: 0 10px 30px rgba(37, 99, 235, 0.35);
+	cursor: default;
+}
