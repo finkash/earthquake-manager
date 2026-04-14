@@ -20,7 +20,6 @@ public class EarthquakeService {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    @SuppressWarnings("unchecked") 
     public void fetchEarthquakes() {
         refreshEarthquakes();
     }
