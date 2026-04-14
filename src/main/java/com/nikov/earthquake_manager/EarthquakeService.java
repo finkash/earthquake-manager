@@ -20,7 +20,7 @@ public class EarthquakeService {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    @SuppressWarnings("unchecked") // Removes 'Unchecked conversion' warnings for clean code
+    @SuppressWarnings("unchecked") 
     public void fetchEarthquakes() {
         
         //Clear table before starting to avoid duplicates
@@ -30,36 +30,57 @@ public class EarthquakeService {
         RestTemplate restTemplate = new RestTemplate();
         
         try {
+            //API Unavailability check
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            
+            // Null check for the main response body
+            if (response == null || !response.containsKey("features")) {
+                System.out.println("API returned no features.");
+                return;
+            }
+
             List<Map<String, Object>> features = (List<Map<String, Object>>) response.get("features");
 
-            // Define a 'cutoff' time (e.g., last 4 hours)
+            //Define a 'cutoff' time - 4 hours ago
             long fourHoursAgo = System.currentTimeMillis() - (240 * 60 * 1000);
 
             if (features != null) {
                 int savedCount = 0;
                 for (Map<String, Object> feature : features) {
-                    Map<String, Object> props = (Map<String, Object>) feature.get("properties");
                     
-                    // Extract magnitude and time for filtering
+                    //Safety check for properties section and geometry section
+                    Map<String, Object> props = (Map<String, Object>) feature.get("properties");
+                    Map<String, Object> geometry = (Map<String, Object>) feature.get("geometry");
+                    
+                    if (props == null || geometry == null) continue; 
+
+                    //Null check for mag. If fine, extract and parse it. If not, default to 0.0
                     Double mag = props.get("mag") != null ? Double.parseDouble(props.get("mag").toString()) : 0.0;
+                    
+                    //Safety check for time
+                    if (props.get("time") == null) continue;
                     long epochTime = Long.parseLong(props.get("time").toString());
 
-                    // Combined Filtering Logic
+                    //Filtering - magnitude and time
                     if (mag > 2.0 && epochTime > fourHoursAgo) {
                         Earthquake e = new Earthquake();
                         
                         e.setMagnitude(mag);
+                        
                         e.setMagType(props.get("magType") != null ? props.get("magType").toString() : "unknown");
                         e.setPlace(props.get("place") != null ? props.get("place").toString() : "Unknown Location");
                         e.setTitle(props.get("title") != null ? props.get("title").toString() : "No Title");
+                        
                         e.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(epochTime), ZoneId.systemDefault()));
 
-                        Map<String, Object> geometry = (Map<String, Object>) feature.get("geometry");
-                        List<Double> coords = (List<Double>) geometry.get("coordinates");
-                        e.setLongitude(coords.get(0));
-                        e.setLatitude(coords.get(1));
+                        //Safety check for coordinates
+                        List<Object> coords = (List<Object>) geometry.get("coordinates");
+                        if (coords != null && coords.size() >= 2) {
+                            e.setLongitude(Double.parseDouble(coords.get(0).toString()));
+                            e.setLatitude(Double.parseDouble(coords.get(1).toString()));
+                        }
 
+                        //Database error check - jumps to catch if save fails
                         repository.save(e); 
                         savedCount++;
                     }
@@ -67,7 +88,8 @@ public class EarthquakeService {
                 System.out.println("Processed " + features.size() + " items and saved " + savedCount + " earthquakes.");
             }
         } catch (Exception e) {
-            System.err.println("Error" + e.getMessage());
+            //Catches API issues, database errors, or data parsing problems
+            System.err.println("ERROR: " + e.getMessage());
         }
     }
 }

@@ -18,8 +18,6 @@ public class Earthquake {
     private String place;
     private String title;
     private LocalDateTime time;
-
-    // These help with the "Map Visualization" optional task
     private Double longitude;
     private Double latitude;
 }
