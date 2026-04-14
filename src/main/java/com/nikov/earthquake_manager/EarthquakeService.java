@@ -20,53 +20,54 @@ public class EarthquakeService {
     }
 
     @EventListener(ApplicationReadyEvent.class)
+    @SuppressWarnings("unchecked") // Removes 'Unchecked conversion' warnings for clean code
     public void fetchEarthquakes() {
-        // USGS API URL for all earthquakes in the last 24 hours
+        
+        // [REQ #5]: Clear table before starting to avoid duplicates
+        repository.deleteAll(); 
+
         String url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
         RestTemplate restTemplate = new RestTemplate();
         
         try {
-            // 1. Get the main JSON response
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             List<Map<String, Object>> features = (List<Map<String, Object>>) response.get("features");
 
+            // Define a 'cutoff' time (e.g., last 2 hours)
+            long twoHoursAgo = System.currentTimeMillis() - (120 * 60 * 1000);
+
             if (features != null) {
+                int savedCount = 0;
                 for (Map<String, Object> feature : features) {
-                    // 2. Extract the 'properties' (mag, place, title, etc.)
                     Map<String, Object> props = (Map<String, Object>) feature.get("properties");
                     
-                    // 3. Extract the 'geometry' (coordinates: long, lat)
-                    Map<String, Object> geometry = (Map<String, Object>) feature.get("geometry");
-                    List<Double> coords = (List<Double>) geometry.get("coordinates");
-
-                    Earthquake e = new Earthquake();
-                    
-                    // Set Magnitude and Mag Type
-                    if (props.get("mag") != null) {
-                        e.setMagnitude(Double.parseDouble(props.get("mag").toString()));
-                    }
-                    e.setMagType(props.get("magType") != null ? props.get("magType").toString() : "unknown");
-                    
-                    // Set Place and Title
-                    e.setPlace(props.get("place").toString());
-                    e.setTitle(props.get("title").toString());
-
-                    // Set Time (USGS gives time in Milliseconds, we convert it to LocalDateTime)
+                    // Extract magnitude and time for filtering
+                    Double mag = props.get("mag") != null ? Double.parseDouble(props.get("mag").toString()) : 0.0;
                     long epochTime = Long.parseLong(props.get("time").toString());
-                    e.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(epochTime), ZoneId.systemDefault()));
 
-                    // Set Longitude and Latitude from geometry section
-                    e.setLongitude(coords.get(0));
-                    e.setLatitude(coords.get(1));
+                    // Combined Filtering Logic
+                    if (mag > 2.0 && epochTime > twoHoursAgo) {
+                        Earthquake e = new Earthquake();
+                        
+                        e.setMagnitude(mag);
+                        e.setMagType(props.get("magType") != null ? props.get("magType").toString() : "unknown");
+                        e.setPlace(props.get("place") != null ? props.get("place").toString() : "Unknown Location");
+                        e.setTitle(props.get("title") != null ? props.get("title").toString() : "No Title");
+                        e.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(epochTime), ZoneId.systemDefault()));
 
-                    // 4. Save to your PostgreSQL database
-                    repository.save(e); 
+                        Map<String, Object> geometry = (Map<String, Object>) feature.get("geometry");
+                        List<Double> coords = (List<Double>) geometry.get("coordinates");
+                        e.setLongitude(coords.get(0));
+                        e.setLatitude(coords.get(1));
+
+                        repository.save(e); 
+                        savedCount++;
+                    }
                 }
-                System.out.println("Saved " + features.size() + " earthquakes");
+                System.out.println("Processed " + features.size() + " items and saved " + savedCount + " earthquakes.");
             }
         } catch (Exception e) {
-            System.out.println("Error while fetching data: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Error" + e.getMessage());
         }
     }
 }
