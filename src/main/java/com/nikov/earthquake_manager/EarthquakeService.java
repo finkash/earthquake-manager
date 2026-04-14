@@ -22,7 +22,12 @@ public class EarthquakeService {
     @EventListener(ApplicationReadyEvent.class)
     @SuppressWarnings("unchecked") 
     public void fetchEarthquakes() {
-        
+        refreshEarthquakes();
+    }
+
+    @SuppressWarnings("unchecked")
+    public int refreshEarthquakes() {
+
         //Clear table before starting to avoid duplicates
         repository.deleteAll(); 
 
@@ -36,7 +41,7 @@ public class EarthquakeService {
             // Null check for the main response body
             if (response == null || !response.containsKey("features")) {
                 System.out.println("API returned no features.");
-                return;
+                return 0;
             }
 
             List<Map<String, Object>> features = (List<Map<String, Object>>) response.get("features");
@@ -86,10 +91,13 @@ public class EarthquakeService {
                     }
                 }
                 System.out.println("Processed " + features.size() + " items and saved " + savedCount + " earthquakes.");
+                return savedCount;
             }
         } catch (Exception e) {
             //Catches API issues, database errors, or data parsing problems
             System.err.println("ERROR: " + e.getMessage());
         }
+
+        return 0;
     }
 }
