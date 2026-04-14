@@ -6,16 +6,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
+import org.springframework.web.bind.annotation.*; 
+// Changed to include @DeleteMapping and @PathVariable
+
+
 @RestController
-@RequestMapping("/api/earthquakes") // This is the URL the frontend will call
+@RequestMapping("/api/earthquakes")
 public class EarthquakeController {
 
     @Autowired
     private EarthquakeRepository repository;
 
+    
+    //Provides the data for the frontend table view
     @GetMapping
     public List<Earthquake> getAllEarthquakes() {
-        // This returns only the filtered earthquakes currently in the DB
         return repository.findAll();
+    }
+
+    //Implementation for deleting a specific earthquake record 
+    @DeleteMapping("/{id}")
+    public void deleteEarthquake(@PathVariable Long id) {
+        repository.deleteById(id);
     }
 }

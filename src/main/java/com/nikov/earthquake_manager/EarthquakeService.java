@@ -23,7 +23,7 @@ public class EarthquakeService {
     @SuppressWarnings("unchecked") // Removes 'Unchecked conversion' warnings for clean code
     public void fetchEarthquakes() {
         
-        // [REQ #5]: Clear table before starting to avoid duplicates
+        //Clear table before starting to avoid duplicates
         repository.deleteAll(); 
 
         String url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
@@ -33,8 +33,8 @@ public class EarthquakeService {
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             List<Map<String, Object>> features = (List<Map<String, Object>>) response.get("features");
 
-            // Define a 'cutoff' time (e.g., last 2 hours)
-            long twoHoursAgo = System.currentTimeMillis() - (120 * 60 * 1000);
+            // Define a 'cutoff' time (e.g., last 4 hours)
+            long fourHoursAgo = System.currentTimeMillis() - (240 * 60 * 1000);
 
             if (features != null) {
                 int savedCount = 0;
@@ -46,7 +46,7 @@ public class EarthquakeService {
                     long epochTime = Long.parseLong(props.get("time").toString());
 
                     // Combined Filtering Logic
-                    if (mag > 2.0 && epochTime > twoHoursAgo) {
+                    if (mag > 2.0 && epochTime > fourHoursAgo) {
                         Earthquake e = new Earthquake();
                         
                         e.setMagnitude(mag);
