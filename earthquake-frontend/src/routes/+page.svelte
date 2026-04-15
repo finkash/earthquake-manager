@@ -27,7 +27,27 @@
 		longitude: number | null;
 	};
 
+	// This function takes an array of EarthquakeDto objects and transforms them into an array of QuakeRow objects,
+	// which are easier to work with in the UI.
+	const toRows = (earthquakes: EarthquakeDto[]): QuakeRow[] => {
+		return earthquakes
+			.map((quake) => {
+				const quakeTime = parseDate(quake.time);
+				return {
+					id: quake.id,
+					magnitude: Number(quake.magnitude ?? 0),
+					place: quake.place ?? 'Unknown location',
+					time: quakeTime,
+					timeLabel: displayTime(quakeTime),
+					latitude: quake.latitude,
+					longitude: quake.longitude
+				};
+			})
+			.sort((a, b) => b.time.getTime() - a.time.getTime());
+	};
+
 	let deletingIds = new Set<number>();
+	let isRefreshing = false;
 
 	// Parse a date string into a Date object. If the input is null or invalid, it returns a default date (epoch).
 	const parseDate = (value: string | null): Date => {
@@ -67,21 +87,8 @@
 		return formatAbsolute(value);
 	};
 
-	// We take the raw earthquake data from the backend (EarthquakeDto), parse and transform it into a more convenient format for our component (QuakeRow).
-	let rows: QuakeRow[] = (data.earthquakes as EarthquakeDto[])
-		.map((quake) => {
-			const quakeTime = parseDate(quake.time);
-			return {
-				id: quake.id,
-				magnitude: Number(quake.magnitude ?? 0),
-				place: quake.place ?? 'Unknown location',
-				time: quakeTime,
-				timeLabel: displayTime(quakeTime),
-				latitude: quake.latitude,
-				longitude: quake.longitude
-			};
-		})
-		.sort((a, b) => b.time.getTime() - a.time.getTime());
+	 
+	let rows: QuakeRow[] = toRows(data.earthquakes as EarthquakeDto[]);
 
 	$: totalQuakes = rows.length;
 
@@ -129,6 +136,25 @@
 			const copy = new Set(deletingIds);
 			copy.delete(id);
 			deletingIds = copy;
+		}
+	};
+
+	const refreshRows = async () => {
+		if (isRefreshing) return;
+		isRefreshing = true;
+
+		try {
+			const response = await fetch('/api/earthquakes/refresh', { method: 'POST' });
+			if (!response.ok) {
+				throw new Error('Refresh failed');
+			}
+
+			const refreshed = (await response.json()) as EarthquakeDto[];
+			rows = toRows(refreshed);
+		} catch {
+			// Keep existing rows when refresh fails.
+		} finally {
+			isRefreshing = false;
 		}
 	};
 </script>
@@ -231,4 +257,10 @@
 			See more
 		</a>
 	</section>
+
+	<div class="refresh-wrap">
+		<button type="button" class="delete-label refresh-label" on:click={refreshRows} disabled={isRefreshing}>
+			REFRESH
+		</button>
+	</div>
 </main>

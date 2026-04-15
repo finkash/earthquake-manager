@@ -245,6 +245,18 @@ tbody td.mag {
 	padding: 0.85rem 1.15rem 1.05rem;
 }
 
+.refresh-wrap {
+	display: flex;
+	justify-content: flex-start;
+	padding-left: 1.15rem;
+}
+
+.refresh-label {
+	font-size: 1.28rem;
+	font-weight: 600;
+	letter-spacing: 0.015em;
+}
+
 .safety-box h2 {
 	margin: 0;
 	font-family: 'Oswald', sans-serif;
@@ -344,6 +356,14 @@ tbody td.mag {
 	}
 
 	.see-more-link {
+		font-size: 0.9rem;
+	}
+
+	.refresh-wrap {
+		padding-left: 0.2rem;
+	}
+
+	.refresh-label {
 		font-size: 0.9rem;
 	}
 }
