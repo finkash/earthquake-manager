@@ -263,6 +263,21 @@ tbody td.mag {
 	color: #edf0f8;
 }
 
+.see-more-link {
+	display: inline-block;
+	margin-top: 0.55rem;
+	font-family: 'Oswald', sans-serif;
+	font-size: 1.28rem;
+	font-weight: 600;
+	letter-spacing: 0.015em;
+	color: #9ba2b8;
+	text-decoration: none;
+}
+
+.see-more-link:hover {
+	color: var(--delete-hover);
+}
+
 @media (max-width: 1100px) {
 	.page-shell {
 		width: min(98vw, 100rem);
@@ -326,5 +341,9 @@ tbody td.mag {
 
 	.safety-box p {
 		font-size: 0.82rem;
+	}
+
+	.see-more-link {
+		font-size: 0.9rem;
 	}
 }

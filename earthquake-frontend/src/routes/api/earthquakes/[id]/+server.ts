@@ -7,6 +7,13 @@ const BACKEND_CANDIDATES = [
 	'http://127.0.0.1:8080'
 ].filter(Boolean) as string[];
 
+
+/** 
+ * We want to delete an earthquake by its ID. However, we have multiple backend candidates to try in case one is down. 
+ * We loop through each candidate and attempt the delete operation. If we get a successful response (200 OK or 404 Not Found), 
+ * we return a 204 No Content to indicate the delete was successful (or that the item was already gone). 
+ * If we get an error response, we keep track of the last error message and status. If all candidates fail, we return the last error message and status to the client.
+ */
 export const DELETE: RequestHandler = async ({ params, fetch }) => {
 	const id = params.id;
 	if (!id || !/^\d+$/.test(id)) {

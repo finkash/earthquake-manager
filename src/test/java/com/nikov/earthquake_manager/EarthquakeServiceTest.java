@@ -27,6 +27,7 @@ class EarthquakeServiceTest {
         repository.deleteAll();
     }
 
+    // This test verifies that the fetchEarthquakes method successfully retrieves earthquake data from the USGS API and saves it to the database.
     @Test
     void testFetchAndSave() {
         earthquakeService.fetchEarthquakes();
@@ -35,6 +36,7 @@ class EarthquakeServiceTest {
         assertTrue(count >= 0, "The database should have processed the earthquakes.");
     }
 
+    // This test verifies that an earthquake record can be saved and retrieved correctly from the database.
     @Test
     void testSaveAndFindById() {
         Earthquake e = new Earthquake();
@@ -54,6 +56,7 @@ class EarthquakeServiceTest {
         assertEquals(3.4, loaded.get().getMagnitude());
     }
 
+    // This test verifies that an earthquake record can be deleted from the database.
     @Test
     void testDeleteByIdRemovesRecord() {
         Earthquake e = new Earthquake();
@@ -71,6 +74,7 @@ class EarthquakeServiceTest {
         assertTrue(repository.findById(id).isEmpty(), "Deleted earthquake should not exist in the database.");
     }
 
+    // This test verifies that the 'place' field can store long values up to 500 characters without truncation.
     @Test
     void testLongPlaceValuePersists() {
         String longPlace = "A".repeat(480);
@@ -87,6 +91,7 @@ class EarthquakeServiceTest {
         assertEquals(longPlace, loaded.getPlace(), "Long place value should persist without truncation.");
     }
 
+    // This test verifies that the fetchEarthquakes method clears existing records before saving new ones, ensuring that the database only contains the most recent earthquake data.
     @Test
     void testFetchClearsExistingRecordsBeforeSavingNewOnes() {
         Earthquake existing = new Earthquake();
@@ -104,6 +109,7 @@ class EarthquakeServiceTest {
         assertTrue(repository.findById(existingId).isEmpty(), "fetchEarthquakes should clear old records before insert.");
     }
 
+    // This test verifies that the earthquakes saved by the fetchEarthquakes method respect the filtering criteria of magnitude > 2.0 and time within the last 4 hours.
     @Test
     void testFetchedRecordsRespectMagnitudeAndTimeFilters() {
         earthquakeService.fetchEarthquakes();

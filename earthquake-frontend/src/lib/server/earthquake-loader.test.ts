@@ -10,7 +10,10 @@ describe('loadEarthquakes', () => {
 
 		const result = await loadEarthquakes(fetchFn, ['http://localhost:8080']);
 
+		// Must stop after the 1 try.
 		expect(fetchFn).toHaveBeenCalledTimes(1);
+
+		//No error message should exist and the earthquakes should be returned.
 		expect(result.loadError).toBe('');
 		expect(result.earthquakes).toEqual(payload);
 	});
@@ -21,23 +24,30 @@ describe('loadEarthquakes', () => {
 		];
 		const fetchFn = vi.fn(async (url: string) => {
 			if (url.includes('localhost')) {
-				throw new Error('connect ECONNREFUSED');
+				throw new Error('connect ECONNREFUSED'); // Simulated network cras
 			}
 			return new Response(JSON.stringify(payload), { status: 200 });
 		});
 
 		const result = await loadEarthquakes(fetchFn, ['http://localhost:8080', 'http://127.0.0.1:8080']);
 
+		// Must try both candidates.
 		expect(fetchFn).toHaveBeenCalledTimes(2);
+
+		// No error message should exist becase the second candidate succeeded
 		expect(result.loadError).toBe('');
 		expect(result.earthquakes).toEqual(payload);
 	});
 
 	it('returns a load error and empty earthquakes when all candidates fail', async () => {
+		
+		// This fetch always returns 502.
 		const fetchFn = vi.fn(async () => new Response('Bad gateway', { status: 502 }));
 
+		//Try two different URLs, both of which will fail.
 		const result = await loadEarthquakes(fetchFn, ['http://localhost:8080', 'http://127.0.0.1:8080']);
 
+		//No data available, so it should try all candidates before giving up.
 		expect(fetchFn).toHaveBeenCalledTimes(2);
 		expect(result.earthquakes).toEqual([]);
 		expect(result.loadError).toBe('Failed to load earthquakes (502)');

@@ -1,5 +1,25 @@
 package com.nikov.earthquake_manager;
 
+/*
+* @Service: This annotation is used to mark the class as a service provider. 
+* It is a specialization of the @Component annotation, which allows Spring to automatically detect and manage it as a bean in the application context.
+*
+* RestTemplate: This is a synchronous client to perform HTTP requests. It simplifies the process of consuming RESTful web services. 
+* In this case, we use it to fetch earthquake data from the USGS API.
+*
+* ApplicationReadyEvent: This event is published as late as conceivably possible to indicate that the application is ready to service requests. 
+* We listen for this event to trigger our initial data fetch when the application starts.
+*
+* EventListener: This annotation is used to mark a method as an event listener, which will be invoked when the specified event is published. 
+* In this case, we use it to listen for the ApplicationReadyEvent and call the fetchEarthquakes() method when the application is ready. 
+*
+* Instant, LocalDateTime, ZoneId: These are classes from the java.time package used for handling date and time. 
+* We use them to convert the epoch time from the API into a more readable LocalDateTime format.
+*
+* List and Map: These are part of the Java Collections Framework. 
+* We use List to handle collections of earthquake features and Map to handle the JSON response from the API, which is parsed into a Map structure by RestTemplate.
+*/
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -19,11 +39,13 @@ public class EarthquakeService {
         this.repository = repository;
     }
 
+    // This method is called when the application is ready. It triggers the initial fetch of earthquake data from the USGS API.
     @EventListener(ApplicationReadyEvent.class)
     public void fetchEarthquakes() {
         refreshEarthquakes();
     }
 
+    // This method fetches earthquake data from the USGS API, processes it, and saves it to the database. It returns the number of earthquakes saved.
     @SuppressWarnings("unchecked")
     public int refreshEarthquakes() {
 

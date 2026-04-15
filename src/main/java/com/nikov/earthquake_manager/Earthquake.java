@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
-@Entity // This tells Spring: "Make a database table for this class"
+@Entity //Make a database table for this class
 @Table(name = "earthquakes")
-@Data   // This is Lombok: It creates Getters/Setters automatically
+@Data   //Lombok - creates Getters/Setters automatically
 public class Earthquake {
 
     @Id
@@ -15,8 +15,7 @@ public class Earthquake {
 
     private Double magnitude;
     private String magType;
-
-    // Some place names can be very long
+    
     @Column(length = 500)
     private String place;
 
