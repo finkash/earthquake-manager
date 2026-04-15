@@ -2,10 +2,11 @@
 
 The app has:
 - Backend: Spring Boot + JPA + PostgreSQL
-- Frontend: SvelteKit (Svelte 5)
+- Frontend: Svelte 5 using SvelteKit
 
 The backend gets earthquake data from the USGS API, filters it, saves it in the database, and gives it to the frontend.
 The frontend shows a dashboard with summary cards and a table, and the user can delete rows.
+The frontend also has a REFRESH option to reload original table data after deletions.
 
 ## What The App Does
 
@@ -22,6 +23,7 @@ The frontend shows a dashboard with summary cards and a table, and the user can 
 	- full table with place, magnitude, time, coordinates info
 - Coordinates open Google Maps
 - User can delete a quake from the table
+- User can click REFRESH to call backend refresh and restore full filtered data
 
 ## Requirements Covered
 
@@ -57,7 +59,7 @@ The project covers these assignment points:
 From project root:
 
 ```powershell
-.\mvnw.cmd clean install
+./mvnw.cmd clean install
 ```
 
 ### 4. Frontend dependencies
@@ -65,38 +67,8 @@ From project root:
 From `earthquake-frontend` folder:
 
 ```powershell
-npm.cmd install
+npm install
 ```
-
-## How To Run Backend And Frontend
-
-## Run backend
-
-From project root:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Backend runs on:
-- `http://localhost:8080`
-
-Main API endpoint:
-- `GET /api/earthquakes`
-
-Delete endpoint:
-- `DELETE /api/earthquakes/{id}`
-
-## Run frontend
-
-Open a second terminal in `earthquake-frontend`:
-
-```powershell
-npm.cmd run dev
-```
-
-Frontend runs on:
-- `http://localhost:5173`
 
 ## Database Configuration Steps
 
@@ -121,9 +93,47 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 ```
 
-### 3. Start backend
+## How To Run Backend And Frontend
 
-When backend starts, JPA will create/update table structure and then load earthquake data.
+## Run backend
+
+From project root:
+
+```powershell
+./mvnw.cmd spring-boot:run
+```
+
+Backend runs on:
+- `http://localhost:8080`
+
+Main API endpoint:
+- `GET /api/earthquakes`
+
+Delete endpoint:
+- `DELETE /api/earthquakes/{id}`
+
+Refresh endpoint:
+- `POST /api/earthquakes/refresh`
+
+## Run frontend
+
+Open a second terminal in `earthquake-frontend`:
+
+```powershell
+npm run dev
+```
+
+Frontend runs on:
+- `http://localhost:5173`
+
+
+## REFRESH Option
+
+- The REFRESH button is under the Safety Tips card (left side).
+- It is useful after deleting one or more rows from the table.
+- On click, frontend calls `POST /api/earthquakes/refresh`.
+- Backend runs `refreshEarthquakes()`, re-fetches and re-filters data from USGS, then table data is loaded again.
+- This restores the original filtered dataset (rows deleted only in UI/backend table are brought back).
 
 ## Testing
 
@@ -132,7 +142,7 @@ When backend starts, JPA will create/update table structure and then load earthq
 From project root:
 
 ```powershell
-.\mvnw.cmd test
+./mvnw.cmd test
 ```
 
 ## Frontend tests
@@ -140,13 +150,13 @@ From project root:
 From `earthquake-frontend`:
 
 ```powershell
-npm.cmd run test
+npm run test
 ```
 
 Also useful:
 
 ```powershell
-npm.cmd run check
+npm run check
 ```
 
 ## Assumptions Made
@@ -154,10 +164,5 @@ npm.cmd run check
 - User has internet connection when backend starts (needed for USGS fetch)
 - PostgreSQL is installed and running locally
 - Backend and frontend run on default ports (`8080` and `5173`)
-- User has permissions to run `mvnw.cmd` and `npm.cmd`
+- User has permissions to run `mvnw.cmd` and `npm` commands
 - Assignment allows deleting records directly from the monitoring table
-
-## Notes
-
-- If all quakes are deleted, data will stay empty until backend is restarted.
-- On backend restart, data is fetched again from USGS and displayed in frontend after refresh.
